@@ -57,9 +57,13 @@ public class LanguageContentDto {
 
         public static ByKeyResponse fromEntities(List<uz.sud.setting.modules.language.entity.LanguageContentEntity> entities) {
             if (entities.isEmpty()) throw new RuntimeException("No content found for the given key");
+            
             ByKeyResponse response = new ByKeyResponse();
+            
             response.key = entities.get(0).key;
+            
             response.category = entities.get(0).category;
+            
             response.contents = entities.stream().map(e -> {
                 ByKeyContentItem item = new ByKeyContentItem();
                 item.id = e.id;

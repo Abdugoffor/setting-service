@@ -7,6 +7,10 @@ import uz.sud.setting.modules.language.entity.LanguageEntity;
 @ApplicationScoped
 public class LanguageRepository implements PanacheRepository<LanguageEntity> {
 
+    public LanguageEntity findByName(String name) {
+        return find("name", name).firstResult();
+    }
+
     public LanguageEntity findMain() {
         return find("main", true).firstResult();
     }

@@ -8,6 +8,7 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import uz.sud.setting.modules.language.dto.LanguageCreateDTO;
 import uz.sud.setting.modules.language.dto.LanguageMapper;
@@ -27,6 +28,11 @@ public class LanguageService {
 
     @Transactional
     public LanguageResponseDTO create(LanguageCreateDTO dto) {
+        LanguageEntity existing = repository.findByName(dto.name);
+        if (existing != null) {
+
+            return LanguageMapper.toDTO(existing);
+        }
 
         if (Boolean.TRUE.equals(dto.main)) {
             unsetMain();
@@ -51,7 +57,6 @@ public class LanguageService {
         return entity == null ? null : LanguageMapper.toDTO(entity);
     }
 
-
     public List<LanguageResponseDTO> search(String name, String description, String search) {
 
         StringBuilder jpql = new StringBuilder("1=1");
@@ -72,16 +77,14 @@ public class LanguageService {
             params.put("search", "%" + search.toLowerCase() + "%");
         }
 
-        PanacheQuery<LanguageEntity> query =
-                repository.find(jpql.toString(), Sort.by("id").descending(), params);
+        PanacheQuery<LanguageEntity> query
+                = repository.find(jpql.toString(), Sort.by("id").descending(), params);
 
         return query.list()
                 .stream()
                 .map(LanguageMapper::toDTO)
                 .toList();
     }
-
-
 
     public List<LanguageResponseDTO> page(int page, int size) {
         return repository.findAll()
@@ -103,9 +106,23 @@ public class LanguageService {
             unsetMain();
         }
 
-        if (dto.name != null) entity.name = dto.name;
-        if (dto.description != null) entity.description = dto.description;
-        if (dto.main != null) entity.main = dto.main;
+        if (dto.name != null) {
+
+            LanguageEntity found = repository.findByName(dto.name);
+
+            if (found != null && !found.id.equals(id)) {
+                throw new BadRequestException("Bunday name allaqachon mavjud");
+            }
+
+            entity.name = dto.name;
+        }
+
+        if (dto.description != null) {
+            entity.description = dto.description;
+        }
+        if (dto.main != null) {
+            entity.main = dto.main;
+        }
 
         return LanguageMapper.toDTO(entity);
     }
